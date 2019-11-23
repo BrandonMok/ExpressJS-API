@@ -1,69 +1,101 @@
+// Data Layer
 var DataLayer = require("./companydata/index.js");
 var dl = new DataLayer("bxm5989");
+const baseURL = "/CompanyServices";
 
+// Express + middleware
 var express = require("express");
 var app = express();    // instance of express
 var morgan = require('morgan');
 app.use(morgan('dev'));
 var urlencodedParser = express.urlencoded({extended: false});   // another middleware
 
-const baseURL = "/CompanyServices";
-
-
-var myCompany = (req,res,next) => {
-    // CHECK: company entered is mine!
-    // var company = req.query.company;
-    // if(company != null){
-    //     if(company == "bxm5989"){
-    //         // GOOD
-
-
-    //     }
-    //     else {
-    //         // Return negative
-    //         res.sendStatus(400);
-    //     }
-    // }
-    // else {
-    //     // return negative
-    //     res.sendStatus(400);
-    // }
-
-    next();
-};
-
-// app.get('/') // only for gets
+// Business Layer
+var bl = require("./businessLayer.js").data;    
+var error = bl.error;                       // store error function
 
 
 /**
  * Departments
  */
-app.get(baseURL + "/departments", myCompany, (req,res,next) => {
+// localhost:8080/CompanyServices/departments?company={company}
+app.get(baseURL + "/departments", (req,res,next) => {
     var company = req.query.company;
-
-    response = dl.getAllDepartment(company);
-
-    //res.send("Retrieved correctly!");
-    res.send(JSON.stringify(response));
+    if(bl.myCompany(company)){
+        response = dl.getAllDepartment(company);    // get all Departments
+        if(response == null){ 
+            res.status(404).send(error("Departments not found!")); 
+        }
+    
+        res.send(bl.jsonString(response));
+    }
+    else{
+        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+    }
 });
-app.get(baseURL + "/department", myCompany, (req,res,next) => {
+// localhost:8080/CompanyServices/department?company={company}&dept_id={dept_id}
+app.get(baseURL + "/department", (req,res,next) => {
     var company = req.query.company;
-    var deptID = req.query.dept_id;
-    response = dl.getDepartment(company, deptID);
+    if(bl.myCompany(company)){
+        var deptID = req.query.dept_id;
 
-    res.send(JSON.stringify(response));
+        response = dl.getDepartment(company, deptID);
+        if(response == null){ 
+            res.send(error("Department doesn't exist!")); 
+        }
+    
+        res.send(bl.jsonString(response));
+    }
+    else{
+        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+    }
 });
+// app.post(baseURL + "/department", urlencodedParser, (req,res,next) => {
+//     var query = req.query;
+//     var response = {company: query.company,
+//                     dept_name: query.dept_name,
+//                     dept_no: query.dept_no,
+//                     location: query.location
+//                 };
+//     if(bl.myCompany(response.company)){
+//         // validate input!
+//     }
+//     else{
+//         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+//     }
+// });
 
 
 /**
  * Employees
  */
+app.get(baseURL + "/employees", (req,res,next) => {
+    response = dl.getAllEmployee(req.query.company);
+    if(response == null){ 
+        res.send(error("No employees found!")); 
+    }
 
+    res.send(bl.jsonString(response));
+});
+app.get(baseURL + "/employee", (req,res,next) => {
+    response = dl.getAllEmployee(req.query.emp_id);
+    if(response == null){ 
+        res.send(error("Employees not found!")); 
+    }
+
+    res.send(bl.jsonString(response));
+});
 
 
  /**
   * Timecards
   */
+app.get(baseURL + "timecards", (req,res,next) => {
+    
+});
+app.get(baseURL + "timecard", (req,res,next) => {
+    
+});
 
 
 
