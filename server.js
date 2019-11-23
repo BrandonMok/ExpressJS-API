@@ -8,11 +8,19 @@ var express = require("express");
 var app = express();    // instance of express
 var morgan = require('morgan');
 app.use(morgan('dev'));
-var urlencodedParser = express.urlencoded({extended: false});   // another middleware
+var urlencodedParser = express.urlencoded({extended: false});   // another middleware to encode form input (POST)     
+var incomingJsonParser = express.json();                        // middleware to handle incoming json string (PUT)
 
 // Business Layer
 var bl = require("./businessLayer.js").data;    
-var error = bl.error;                       // store error function
+var error = bl.error;                
+
+/**
+ * On server startup, send to default path of /CompanyServices
+ */
+app.get("/", (req,res,next) => {
+    res.redirect(baseURL);
+});
 
 
 /**
