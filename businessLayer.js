@@ -1,6 +1,7 @@
 // Combination of middleware and validation methods.
  var methods = {};
 
+ // MyCompany check
 methods.myCompany = function(company){
     // CHECK: company entered is mine!
     if(company != null){
