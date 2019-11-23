@@ -144,6 +144,28 @@ app.get(baseURL + "/timecard", (req,res,next) => {
         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
     }
 });
+app.delete(baseURL + "/timecard", (req,res,next) => {
+    var company = req.query.company;
+    if(bl.company(company)){
+        var timecard_id = req.query.timecard_id
+        var timecard = dl.getTimecard(timecard_id);
+        if(timecard != null){
+            var rows = dl.deleteTimecard(timecard_id);
+            if(rows > 0){
+                res.send("Timecard " + timecard_id + " deleted!");
+            }
+            else {
+                res.status(404).send(error("Deleting timecard " + timecard_id + " failed!"));
+            }
+        }  
+        else {
+            res.status(404).send(error("Timecard " + timecard_id + " trying to delete doesn't exist!"));
+        }
+    }
+    else{
+        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+    }
+});
 
 
 
