@@ -69,21 +69,36 @@ app.get(baseURL + "/department", (req,res,next) => {
 /**
  * Employees
  */
+// localhost:8080/CompanyServices/employees?company={company}
 app.get(baseURL + "/employees", (req,res,next) => {
-    response = dl.getAllEmployee(req.query.company);
-    if(response == null){ 
-        res.send(error("No employees found!")); 
+    var company = req.query.company;
+    if(bl.myCompany(company)){
+        response = dl.getAllEmployee(req.query.company);
+        if(response == null){ 
+            res.status(404).send(error("No employees found!")); 
+        }
+    
+        res.send(bl.jsonString(response));
     }
-
-    res.send(bl.jsonString(response));
+    else{
+        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+    }
 });
+// localhost:8080/CompanyServices/employees?company={company}&emp_id={emp_id}
 app.get(baseURL + "/employee", (req,res,next) => {
-    response = dl.getAllEmployee(req.query.emp_id);
-    if(response == null){ 
-        res.send(error("Employees not found!")); 
+    var company = req.query.company;
+    if(bl.myCompany(company)){
+        var emp_id = req.query.emp_id;
+        response = dl.getEmployee(emp_id);
+        if(response == null){ 
+            res.status(404).send(error("Employee not found!" + emp_id)); 
+        }
+    
+        res.send(bl.jsonString(response));
     }
-
-    res.send(bl.jsonString(response));
+    else{
+        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+    }
 });
 
 
