@@ -72,6 +72,51 @@ app.get(baseURL + "/department", (req,res,next) => {
 //         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
 //     }
 // });
+app.delete(baseURL + "/department", (req,res,next) => {
+    var company = req.query.company;
+    if(bl.myCompany(company)){
+        var dept_id = req.query.dept_id;
+        var department = dl.getDepartment(dept_id);
+        if(department != null){
+            /**
+             * Delete timecard 
+             * Delete Employees
+             * Delete department
+             */
+            var employees = dl.getAllEmployee(company); // get ALL employees 
+            if(employees.length > 0){
+                // Iterate through all employees
+                employees.forEach((emp) => {
+                    // if employee's dept_id == the department's ID we're trying to delete, get & delete the emp's timecards
+                    if(emp.getDeptId() == department.getId()){
+                        // Get & delete all timecards for the employee!
+                        var timecards = dl.getAllTimecard(emp.getId());
+                        timecards.foreach((tc) => {
+                            dl.deleteTimecard(tc.getId());
+                        })
+
+                        dl.deleteEmployee(emp.getId()); // delete employee
+                    }
+                });
+            }
+            
+            // Delete Department
+            var rows = dl.deleteDepartment(company, dept_id);
+            if(rows > 0){
+                res.send("Department " + dept_id + " from " + company + " deleted!");
+            }
+            else {
+                res.status(404).send(error(rows + " rows affected! Delete failed!"));
+            }
+        }
+        else {
+            res.status(404).send(error("Department " + dept_id + " trying to delete doesn't exist!"));
+        }
+    }
+    else{
+        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+    }
+});
 
 
 /**
