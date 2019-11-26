@@ -46,6 +46,10 @@ methods.validString = function(input){
 
     return valid;
 }
+// success - commonly used to output a success json object
+methods.success = function(successMsg){
+    return {"success": successMsg};
+}
 // error function - commonly used to output a json object
 methods.error = function(errorMsg) {
     return {error: errorMsg};
