@@ -73,4 +73,19 @@ methods.validateTimestamp = function(timestamp){
     
 }
 
+
+/**  OBJECT VALIDATION  */
+// Department validation
+methods.validateDepartment = function(department, company, action){
+
+}
+// Employee validation
+methods.validateEmployee = function(employee, company, action){
+
+}
+// Timecard Validation
+methods.validateTimecard = function(timecard, company, action){
+
+}
+
 exports.data = methods;
