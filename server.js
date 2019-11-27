@@ -28,7 +28,7 @@ app.get("/", (req,res,next) => {
  */
 // localhost:8080/CompanyServices/departments?company={company}
 app.get(baseURL + "/departments", (req,res,next) => {
-    var company = req.query.company;
+    var company = bl.retrieveCompany(req);
     if(bl.myCompany(company)){
         var departments = dl.getAllDepartment(company);    // get all Departments
         if(departments == null){ 
@@ -43,7 +43,7 @@ app.get(baseURL + "/departments", (req,res,next) => {
 });
 // localhost:8080/CompanyServices/department?company={company}&dept_id={dept_id}
 app.get(baseURL + "/department", (req,res,next) => {
-    var company = req.query.company;
+    var company = bl.retrieveCompany(req);
     if(bl.myCompany(company)){
         var deptID = req.query.dept_id;
 
@@ -73,7 +73,7 @@ app.get(baseURL + "/department", (req,res,next) => {
 //     }
 // });
 app.delete(baseURL + "/department", (req,res,next) => {
-    var company = req.query.company;
+    var company = bl.retrieveCompany(req);
     if(bl.myCompany(company)){
         var dept_id = req.query.dept_id;
         var department = dl.getDepartment(company, dept_id);
@@ -123,7 +123,7 @@ app.delete(baseURL + "/department", (req,res,next) => {
  */
 // localhost:8080/CompanyServices/employees?company={company}
 app.get(baseURL + "/employees", (req,res,next) => {
-    var company = req.query.company;
+    var company = bl.retrieveCompany(req);
     if(bl.myCompany(company)){
         response = dl.getAllEmployee(company);
         if(response == null){ 
@@ -138,7 +138,7 @@ app.get(baseURL + "/employees", (req,res,next) => {
 });
 // localhost:8080/CompanyServices/employee?company={company}&emp_id={emp_id}
 app.get(baseURL + "/employee", (req,res,next) => {
-    var company = req.query.company;
+    var company = bl.retrieveCompany(req);
     if(bl.myCompany(company)){
         var emp_id = req.query.emp_id;
 
@@ -153,6 +153,37 @@ app.get(baseURL + "/employee", (req,res,next) => {
         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
     }
 });
+app.delete(baseURL + "/employee", (req,res,next) => {
+    var company = bl.retrieveCompany(req);
+    if(bl.myCompany(company)){
+        var emp_id = req.query.emp_id;
+        var employee = dl.getEmployee(emp_id);
+        if(employee != null){
+            // Delete employee timecards if they have any!
+            var timecards = dl.getAllTimecard(emp_id);
+            if(timecards.length > 0){
+                for(var i = 0; i < timecards.length; i++){
+                    dl.deleteTimecard(timecards[i].getId());
+                }
+            }
+
+            // Delete employee
+            var rows = dl.deleteEmployee(emp_id);
+            if(rows > 0){
+                res.json(bl.success("Deleting employee " + emp_id + " was deleted successfully!"));
+            }
+            else {
+                res.status(500).send(error("Deleting employee " + emp_id + " failed to delete!"));
+            }
+        }
+        else {
+            res.status(404).send(error("Employee " + emp_id + " does not exist!"));
+        }
+    }
+    else{
+        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+    }
+});
 
 
  /**
@@ -160,7 +191,7 @@ app.get(baseURL + "/employee", (req,res,next) => {
   */
 // localhost:8080/CompanyServices/timecards?company={company}&emp_id={emp_id}
 app.get(baseURL + "/timecards", (req,res,next) => {
-    var company = req.query.company;
+    var company = bl.retrieveCompany(req);
     if(bl.myCompany(company)){
         var emp_id = req.query.emp_id;
         var timecards = dl.getAllTimecard(emp_id);
@@ -175,7 +206,7 @@ app.get(baseURL + "/timecards", (req,res,next) => {
 });
 // localhost:8080/CompanyServices/timecard?company={company}&timecard_id={timecard_id}
 app.get(baseURL + "/timecard", (req,res,next) => {
-    var company = req.query.company;
+    var company = bl.retrieveCompany(req);
     if(bl.company(company)){
         var timecard_id = req.query.timecard_id;
         var timecard = getTimecard(timecard_id);
@@ -189,17 +220,17 @@ app.get(baseURL + "/timecard", (req,res,next) => {
     }
 });
 app.delete(baseURL + "/timecard", (req,res,next) => {
-    var company = req.query.company;
+    var company = bl.retrieveCompany(req);
     if(bl.company(company)){
         var timecard_id = req.query.timecard_id
         var timecard = dl.getTimecard(timecard_id);
         if(timecard != null){
             var rows = dl.deleteTimecard(timecard_id);
             if(rows > 0){
-                res.send("Timecard " + timecard_id + " deleted!");
+                res.json(bl.success("Timecard " + timecard_id + " deleted successfully!"));
             }
             else {
-                res.status(404).send(error("Deleting timecard " + timecard_id + " failed!"));
+                res.status(500).send(error("Deleting timecard " + timecard_id + " failed!"));
             }
         }  
         else {

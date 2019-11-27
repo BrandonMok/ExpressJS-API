@@ -1,6 +1,12 @@
 // Combination of middleware and validation methods.
  var methods = {};
 
+// Reusable function to retrieve company from QUERY parameters 
+methods.retrieveCompany = function(request){
+    var company = request.query.company;
+    return company;
+} 
+
 // MyCompany check
 methods.myCompany = function(company){
     // CHECK: company entered is mine!
