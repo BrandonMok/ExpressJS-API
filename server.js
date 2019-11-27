@@ -66,7 +66,16 @@ app.get(baseURL + "/department", (req,res,next) => {
 //                     location: query.location
 //                 };
 //     if(bl.myCompany(response.company)){
-//         // validate input!
+//         var department = new department(company, dept_name, dept_no, location);
+//         department = bl.validateDepartment(department, company, "POST");
+//         if(department != null){
+//             department = dl.insertDepartment(department);
+//             return res.json(bl.success(department));
+//         }
+//         else {
+//             return res.status(400).send(error(" Invalid field input(s)!"));
+//         }
+
 //     }
 //     else{
 //         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
