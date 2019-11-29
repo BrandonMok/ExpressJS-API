@@ -58,29 +58,29 @@ app.get(baseURL + "/department", (req,res,next) => {
         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
     }
 });
-// app.post(baseURL + "/department", urlencodedParser, (req,res,next) => {
-//     var query = req.query;
-//     var response = {company: query.company,
-//                     dept_name: query.dept_name,
-//                     dept_no: query.dept_no,
-//                     location: query.location
-//                 };
-//     if(bl.myCompany(response.company)){
-//         var department = new department(company, dept_name, dept_no, location);
-//         department = bl.validateDepartment(department, company, "POST");
-//         if(department != null){
-//             department = dl.insertDepartment(department);
-//             return res.json(bl.success(department));
-//         }
-//         else {
-//             return res.status(400).send(error(" Invalid field input(s)!"));
-//         }
+app.post(baseURL + "/department", urlencodedParser, (req,res) => {
+    var response = {company: req.body.company,
+                    dept_name: req.body.dept_name,
+                    dept_no: req.body.dept_no,
+                    location: req.body.location
+                };
+    
+    if(bl.myCompany(response.company)){
+        var department = new dl.Department(response.company, response.dept_name, response.dept_no, response.location);
+        department = bl.validateDepartment(department, response.company, "POST");
+        if(department != null){
+            department = dl.insertDepartment(department);
+            return res.json(bl.success(department));
+        }
+        else {
+            return res.status(400).send(error(" Invalid field input(s)!"));
+        }
 
-//     }
-//     else{
-//         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
-//     }
-// });
+    }
+    else{
+        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+    }
+});
 app.delete(baseURL + "/department", (req,res,next) => {
     var company = bl.retrieveCompany(req);
     if(bl.myCompany(company)){

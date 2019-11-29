@@ -1,5 +1,8 @@
+// Data Layer
+var DataLayer = require("./companydata/index.js");
+
 // Combination of middleware and validation methods.
- var methods = {};
+var methods = {};
 
 // Reusable function to retrieve company from QUERY parameters 
 methods.retrieveCompany = function(request){
@@ -52,6 +55,14 @@ methods.validString = function(input){
 
     return valid;
 }
+// Not null - commonly used to verify object isn't null
+methods.notNull = function(obj){
+    var notNull = false;
+    if(obj != null){
+        notNull = true;
+    }
+    return notNull;
+}
 // success - commonly used to output a success json object
 methods.success = function(successMsg){
     return {"success": successMsg};
@@ -72,7 +83,8 @@ methods.jsonStringToObject = function(jsonStr){
 
 // Date validation
 methods.validateDate = function(date){
-
+    // var valid = false;
+    // return valid;
 }
 // timestamp validation
 methods.validateTimestamp = function(timestamp){
@@ -82,8 +94,54 @@ methods.validateTimestamp = function(timestamp){
 
 /**  OBJECT VALIDATION  */
 // Department validation
-methods.validateDepartment = function(department, company, action){
+methods.validateDepartment = function(dep, company, action){
+    var dl = new DataLayer("bxm5989");
 
+    var department = dl.getDepartment(company, dep.getId());   
+    var allDepartments = dl.getAllDepartment(company);
+
+    if(action == "PUT"){
+        if(!this.notNull(department)){
+            // On PUT, don't want department to be null 
+            return null;
+        }
+    }
+    else if(action == "POST"){
+        if(this.notNull(department)){
+            // On POST, don't want the department to have already existed
+            return null;
+        }
+    }
+
+    // Dept_no needs to be unique - use function to verify/handle uniqueness!
+    var dep_no = this.uniquePerCompany(dep.getDeptNo(), company);
+
+    // CHECK: if there's an existing department w/the same dept_no
+    var allDepartments = dl.getAllDepartment(company);
+
+    for(var i = 0; i < allDepartments.length; i++){
+        if(allDepartments[i].getDeptNo() == dep_no){
+            /**
+             * POST: Returns null if dept_no is already in use
+             * PUT: Return null if there's a department that already exists and uses this dept_no
+             */
+            if(action == "POST"){
+                return null;
+            }
+            else if (action == "PUT"){
+                if(dep.getId() != allDepartments[i].getId()){
+                    return null;
+                }
+            }
+        }
+    }
+
+    // If there wasn't a department found w/the unique dept_no
+    if(dep_no != dep.getDeptNo()){
+        dep.setDeptNo(dep_no);
+    }
+
+    return dep;
 }
 // Employee validation
 methods.validateEmployee = function(employee, company, action){
