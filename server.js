@@ -58,6 +58,7 @@ app.get(baseURL + "/department", (req,res,next) => {
         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
     }
 });
+// POST
 app.post(baseURL + "/department", urlencodedParser, (req,res) => {
     var response = {company: req.body.company,
                     dept_name: req.body.dept_name,
@@ -81,6 +82,69 @@ app.post(baseURL + "/department", urlencodedParser, (req,res) => {
         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
     }
 });
+// PUT
+app.put(baseURL + "/department", incomingJsonParser, (req,res,next) => {
+    var response = {dept_id: req.body.dept_id,
+                    company: req.body.company,
+                    dept_name: req.body.dept_name,
+                    dept_no: req.body.dept_no,
+                    location: req.body.location
+                };       
+
+    var keys = Object.keys(response);   // all object keys
+
+    var company = response.company;
+    if(bl.myCompany(company)){
+        var dept_id = response.dept_id;
+        var department = dl.getDepartment(company, dept_id);    // get the department trying to update
+        if(bl.notNull(department)){
+            for(var i = 0; i < keys.length; i++){
+                if(keys[i] != 0 && keys[i] != null){
+                    switch(keys[i].toLowerCase()){
+                        case "dept_name":
+                            if(bl.notNull(response.dept_name)){
+                                department.setDeptName(response.dept_name);
+                            }
+                            break;
+                        case "dept_no":
+                            if(bl.notNull(response.dept_no)){
+                                department.setDeptNo(response.dept_no);
+                            }
+                            break;
+                        case "location":
+                            if(bl.notNull(response.location)){
+                                department.setLocation(response.location);
+                            }
+                            break;
+                    }
+                }
+            }
+
+            // VALIDATE: Check modified department obj is valid
+            department = bl.validateDepartment(department, company, "PUT");
+
+            if(bl.notNull(department)){
+                department = dl.updateDepartment(department);       // UPDATE
+                if(bl.notNull(department)){
+                    res.json(bl.success(department));             // return updated department
+                }
+                else {
+                    res.status(400).send(error("Update failed on department " + dept_id + "!"));
+                }
+            }
+            else{
+                res.status(400).send(error("Invalid field(s) entered on update!"));
+            }
+        }
+        else {
+            res.status(404).send(error("Department " + dept_id + " not found to update!"));
+        }
+    }
+    else{
+        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+    }
+});
+// DELETE
 app.delete(baseURL + "/department", (req,res,next) => {
     var company = bl.retrieveCompany(req);
     if(bl.myCompany(company)){

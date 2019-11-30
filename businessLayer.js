@@ -29,7 +29,7 @@ methods.myCompany = function(company){
 // uniquePerCompany - makes sure entered _no is unique
 methods.uniquePerCompany = function(str, company){
     var unique = "";
-    if(this.myCompany(company)){
+    if(methods.myCompany(company)){
         if(!str.includes(company)){
             unique = company + str;
         }
@@ -79,8 +79,6 @@ methods.jsonString = function(jsonObj) {
 methods.jsonStringToObject = function(jsonStr){
     return JSON.parse(jsonStr);
 }
-
-
 // Date validation
 methods.validateDate = function(date){
     // var valid = false;
@@ -97,8 +95,8 @@ methods.validateTimestamp = function(timestamp){
 methods.validateDepartment = function(dep, company, action){
     var dl = new DataLayer("bxm5989");
 
-    var department = dl.getDepartment(company, dep.getId());   
-    var allDepartments = dl.getAllDepartment(company);
+    var department = dl.getDepartment(company, dep.getId());    // get specific department wanting to modify
+    var allDepartments = dl.getAllDepartment(company);          // get ALL departments
 
     if(action == "PUT"){
         if(!this.notNull(department)){
@@ -114,11 +112,9 @@ methods.validateDepartment = function(dep, company, action){
     }
 
     // Dept_no needs to be unique - use function to verify/handle uniqueness!
-    var dep_no = this.uniquePerCompany(dep.getDeptNo(), company);
+    var dep_no = methods.uniquePerCompany(dep.getDeptNo(), company);
 
-    // CHECK: if there's an existing department w/the same dept_no
-    var allDepartments = dl.getAllDepartment(company);
-
+    // Iterate through all departments to find if or if not dep already exists
     for(var i = 0; i < allDepartments.length; i++){
         if(allDepartments[i].getDeptNo() == dep_no){
             /**
