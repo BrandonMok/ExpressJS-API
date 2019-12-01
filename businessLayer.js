@@ -1,6 +1,7 @@
 // Data Layer
 var DataLayer = require("./companydata/index.js");
 var dl = new DataLayer("bxm5989");
+var moment = require("moment");
 
 // Combination of middleware and validation methods.
 var methods = {};
@@ -46,11 +47,11 @@ methods.uniquePerCompany = function(str, company){
 
 // Validate string - Makes sure string only contains letters
 methods.validString = function(input){
-    var onlyLetters = "/^[A-Za-z]+$/";
-    var onlyLettersSpace = "/^[A-Z a-z]+$/";
+    var onlyLetters = /^[A-Za-z]+$/;
+    var onlyLettersSpace = /^[A-Z a-z]+$/;
     var valid = false;
 
-    if(input.value.match(onlyLetters) || input.value.match(onlyLettersSpace)){
+    if(input.match(onlyLetters) || input.match(onlyLettersSpace)){
         valid = true;
     }
 
@@ -81,9 +82,28 @@ methods.jsonStringToObject = function(jsonStr){
     return JSON.parse(jsonStr);
 }
 // Date validation
-methods.validateDate = function(date){
-    // var valid = false;
-    // return valid;
+methods.validateDate = function(validateDate){
+    var valid = false;
+
+    // Passed in date
+    var passedDate = moment(validateDate);
+    var pDay = passedDate.day();                // day of week  (#)
+    var pDayOfMonth = passedDate.date();        // day of month (#)
+    var pMaxDays = passedDate.daysInMonth();    // max # of days in month
+
+    // current date
+    //var current_date = moment().toDate().getTime();
+    //var current_date = moment().format('L');   //12/01/2019
+    var current_date = moment();
+
+    if( (pDay >= 2 && pDay <= 6) &&
+        (pDayOfMonth > 0 && pDayOfMonth <= pMaxDays) &&
+        passedDate.isSameOrBefore(current_date)
+    ){
+        valid = true;   // is valid date
+    }
+
+    return valid;
 }
 // timestamp validation
 methods.validateTimestamp = function(timestamp){
@@ -169,7 +189,7 @@ methods.validateEmployee = function(emp, company, action){
      * Set to 0 if it's the first employee or to another employee that doesn't have a manager yet
      */
     var allEmployees = dl.getAllEmployee(company);
-    if(allEmployees.length > 0){
+    if(allEmployees.length == 0){
         emp.setMngId(0);
     }
     else {
@@ -204,7 +224,7 @@ methods.validateEmployee = function(emp, company, action){
         // CHECK: emp_no
         // emp_no must be unique per company - use uniquePerCompany()
         var emp_no = methods.uniquePerCompany(emp.getEmpNo(), company);
-        for(var j = 0; j < allEmployees; j++){
+        for(var j = 0; j < allEmployees.length; j++){
             if(allEmployees[j].getEmpNo() == emp_no){
                 /**
                  * POST: returns null if there's an existing employee already w/the emp_no
@@ -221,10 +241,11 @@ methods.validateEmployee = function(emp, company, action){
             }
         }
 
-        // if no employee found w/unique emp_no
+        //if no employee found w/unique emp_no
         if(emp_no != emp.getEmpNo()){
             emp.setEmpNo(emp_no);
         }
+
 
         // if emp_name & job aren't valid strings w/o numbers
         if(!methods.validString(emp.getEmpName()) || !methods.validString(emp.getJob())){
@@ -235,9 +256,9 @@ methods.validateEmployee = function(emp, company, action){
         if(!methods.validateDate(emp.getHireDate())){
             return null;
         }
-
-        return emp;
     }
+
+    return emp;
 }
 // Timecard Validation
 methods.validateTimecard = function(timecard, company, action){

@@ -236,7 +236,7 @@ app.get(baseURL + "/employee", (req,res,next) => {
     }
 });
 // POST
-app.post(baseURL + "/employee", urlencodedParser, (req,res,next) => {
+app.post(baseURL + "/employee", urlencodedParser, (req,res) => {
     var response = {company: req.body.company,
                     emp_name: req.body.emp_name,
                     emp_no: req.body.emp_no,
@@ -247,16 +247,18 @@ app.post(baseURL + "/employee", urlencodedParser, (req,res,next) => {
                     mng_id: req.body.mng_id
                 };
 
+
     if(bl.myCompany(response.company)){
         var employee = new dl.Employee(response.emp_name, response.emp_no, 
                                     response.hire_date, response.job, 
                                     response.salary, response.dept_id, response.mng_id
                                 );
-        employee = bl.validateEmployee(employee, response.company, "POST");
-        if(bl.notNull(employee)){
-            employee = dl.insertEmployee(employee); // INSERT
-            if(bl.notNull(employee)){
-                res.json(bl.success(employee));     // return newly inserted employee obj
+       
+        var validEmp = bl.validateEmployee(employee, response.company, "POST"); // VALIDATE
+        if(bl.notNull(validEmp)){
+            validEmp = dl.insertEmployee(validEmp); // INSERT
+            if(bl.notNull(validEmp)){
+                res.json(bl.success(validEmp));     // return newly inserted employee obj
             }
             else {
                 res.status(400).send(error("Inserting employee failed!"));
@@ -292,7 +294,7 @@ app.delete(baseURL + "/employee", (req,res,next) => {
             // Delete employee
             var rows = dl.deleteEmployee(emp_id);
             if(rows > 0){
-                res.json(bl.success("Deleting employee " + emp_id + " was deleted successfully!"));
+                res.json(bl.success("Deleted employee " + emp_id + " successfully!"));
             }
             else {
                 res.status(500).send(error("Deleting employee " + emp_id + " failed to delete!"));
@@ -349,7 +351,7 @@ app.delete(baseURL + "/timecard", (req,res,next) => {
         if(timecard != null){
             var rows = dl.deleteTimecard(timecard_id);
             if(rows > 0){
-                res.json(bl.success("Timecard " + timecard_id + " deleted successfully!"));
+                res.json(bl.success("Deleted timecard " + timecard_id + " successfully!"));
             }
             else {
                 res.status(500).send(error("Deleting timecard " + timecard_id + " failed!"));
