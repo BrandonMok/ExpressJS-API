@@ -22,6 +22,13 @@ app.get("/", (req,res,next) => {
     res.redirect(baseURL);
 });
 
+/**
+ * Company
+ */
+// app.delete(baseURL + "/company", (req,res,next) => {
+
+// });
+
 
 /**
  * Departments
@@ -57,7 +64,7 @@ app.get(baseURL + "/department", (req,res,next) => {
         res.json(bl.success(department));
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
 // POST
@@ -86,7 +93,7 @@ app.post(baseURL + "/department", urlencodedParser, (req,res) => {
 
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
 // PUT
@@ -148,7 +155,7 @@ app.put(baseURL + "/department", incomingJsonParser, (req,res,next) => {
         }
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
 // DELETE
@@ -193,7 +200,7 @@ app.delete(baseURL + "/department", (req,res,next) => {
         }
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
 
@@ -214,7 +221,7 @@ app.get(baseURL + "/employees", (req,res,next) => {
         res.json(bl.success(response));
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
 // GET
@@ -232,7 +239,7 @@ app.get(baseURL + "/employee", (req,res,next) => {
         res.json(bl.success(employee));
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
 // POST
@@ -268,7 +275,7 @@ app.post(baseURL + "/employee", urlencodedParser, (req,res) => {
         }
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
 // PUT
@@ -351,7 +358,7 @@ app.put(baseURL + "/employee", incomingJsonParser, (req,res,next) => {
         }
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
 // DELETE
@@ -383,7 +390,7 @@ app.delete(baseURL + "/employee", (req,res,next) => {
         }
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
 
@@ -391,6 +398,7 @@ app.delete(baseURL + "/employee", (req,res,next) => {
  /**
   * Timecards
   */
+// GET
 // localhost:8080/CompanyServices/timecards?company={company}&emp_id={emp_id}
 app.get(baseURL + "/timecards", (req,res,next) => {
     var company = bl.retrieveCompany(req);
@@ -403,9 +411,10 @@ app.get(baseURL + "/timecards", (req,res,next) => {
         res.json(bl.success(timecards));
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
+// GET
 // localhost:8080/CompanyServices/timecard?company={company}&timecard_id={timecard_id}
 app.get(baseURL + "/timecard", (req,res,next) => {
     var company = bl.retrieveCompany(req);
@@ -421,6 +430,42 @@ app.get(baseURL + "/timecard", (req,res,next) => {
         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
     }
 });
+// POST
+app.post(baseURL + "/timecard", urlencodedParser, (req,res,next) => {
+    var response = {company: req.body.company,
+                    emp_id: req.body.emp_id,
+                    start_time: req.body.start_time,
+                    end_time: req.body.end_time
+                    };
+
+    if(bl.myCompany(response.company)){
+        var timecard = new dl.Timecard(response.start_time,
+                                    response.end_time,
+                                    response.emp_id);
+        
+        var validTC = bl.validateTimecard(timecard, response.company, "POST");
+        if(bl.notNull(validTC)){
+            validTC = dl.insertTimecard(validTC); // INSERT
+            if(bl.notNull(validTC)){
+                res.json(bl.success(validTC));
+            }
+            else {
+                res.status(400).send(error("Inserting timecard failed!"));
+            }
+        }
+        else {
+            res.status(400).send(error("Invalid input(s)!"));
+        }
+    }
+    else{
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
+    }
+});
+//PUT
+app.put(baseURL + "/timecard", incomingJsonParser, (req,res) => {
+
+});
+// DELETE
 app.delete(baseURL + "/timecard", (req,res,next) => {
     var company = bl.retrieveCompany(req);
     if(bl.myCompany(company)){
@@ -440,7 +485,7 @@ app.delete(baseURL + "/timecard", (req,res,next) => {
         }
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
 

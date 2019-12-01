@@ -3,7 +3,7 @@ var DataLayer = require("./companydata/index.js");
 var dl = new DataLayer("bxm5989");
 var moment = require("moment");
 
-// Combination of middleware and validation methods.
+// Combination of middleware, validation, and constants
 var methods = {};
 
 // Reusable function to retrieve company from QUERY parameters 
@@ -24,7 +24,6 @@ methods.myCompany = function(company){
         // Company was null
         return false;
     }
-
     return true;
 };
 
@@ -54,7 +53,6 @@ methods.validString = function(input){
     if(input.match(onlyLetters) || input.match(onlyLettersSpace)){
         valid = true;
     }
-
     return valid;
 }
 // Not null - commonly used to verify object isn't null
@@ -72,6 +70,10 @@ methods.success = function(successMsg){
 // error function - commonly used to output a json object
 methods.error = function(errorMsg) {
     return {error: errorMsg};
+}
+// Reusable error response message function
+methods.errorResponse = function(res, status, msg){
+    return res.status(status).send(methods.error(msg));
 }
 // obj -> string
 methods.jsonString = function(jsonObj) {
