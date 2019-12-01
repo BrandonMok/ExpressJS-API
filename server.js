@@ -247,7 +247,6 @@ app.post(baseURL + "/employee", urlencodedParser, (req,res) => {
                     mng_id: req.body.mng_id
                 };
 
-
     if(bl.myCompany(response.company)){
         var employee = new dl.Employee(response.emp_name, response.emp_no, 
                                     response.hire_date, response.job, 
@@ -274,7 +273,86 @@ app.post(baseURL + "/employee", urlencodedParser, (req,res) => {
 });
 // PUT
 app.put(baseURL + "/employee", incomingJsonParser, (req,res,next) => {
+    var response = {company: req.body.company,
+                    emp_id: req.body.emp_id,
+                    emp_name: req.body.emp_name,
+                    emp_no: req.body.emp_no,
+                    hire_date: req.body.hire_date,
+                    job: req.body.job,
+                    salary: req.body.salary,
+                    dept_id: req.body.dept_id,
+                    mng_id: req.body.mng_id
+                };
+    var keys = Object.keys(response);
+    var company = response.company;
 
+    if(bl.myCompany(company)){
+        var emp_id = response.emp_id;           // store emp_id
+        var employee = dl.getEmployee(emp_id);  // get employee trying to update
+        if(bl.notNull(employee)){
+            for(var i = 0; i < keys.length; i++){
+                if(keys[i] != 0 && keys[i] != null){
+                    switch(keys[i].toLowerCase()){
+                        case "emp_name":
+                            if(bl.notNull(response.emp_name)){
+                                employee.setEmpName(response.emp_name);
+                            }
+                            break;
+                        case "emp_no":
+                            if(bl.notNull(response.emp_no)){
+                                employee.setEmpNo(response.emp_no);
+                            }
+                            break;
+                        case "hire_date":
+                            if(bl.notNull(response.hire_date)){
+                                employee.setHireDate(response.hire_date);
+                            }
+                            break;
+                        case "job":
+                            if(bl.notNull(response.job)){
+                                employee.setJob(response.job);
+                            }
+                            break;
+                        case "salary":
+                            if(bl.notNull(response.salary)){
+                                employee.setSalary(response.salary);
+                            }
+                            break;
+                        case "dept_id":
+                            if(bl.notNull(response.dept_id)){
+                                employee.setDeptId(response.dept_id);
+                            }
+                            break;
+                        case "mng_id":
+                            if(bl.notNull(response.mng_id)){
+                                employee.setMngId(response.mng_id);
+                            }
+                            break;
+                    }// end switch
+                }// end if
+            }// end for
+
+            employee = bl.validateEmployee(employee, company, "PUT"); // VALIDATE
+            if(bl.notNull(employee)){
+                employee = dl.updateEmployee(employee); // UPDATE
+                if(bl.notNull(employee)){
+                    res.json(bl.success(employee));
+                }
+                else {
+                    res.status(400).send(error("Update failed on employee"));
+                }
+            }
+            else {
+                res.status(400).send(error("Invalid input field(s)!"));
+            }
+        }
+        else {
+            res.status(404).send(error("Employee " + emp_id + " not found to update!"));
+        }
+    }
+    else{
+        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+    }
 });
 // DELETE
 app.delete(baseURL + "/employee", (req,res,next) => {
