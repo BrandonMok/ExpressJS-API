@@ -40,13 +40,13 @@ app.get(baseURL + "/departments", (req,res,next) => {
     if(bl.myCompany(company)){
         var departments = dl.getAllDepartment(company);    // get all Departments
         if(departments == null){ 
-            res.status(404).send(error("Departments not found!")); 
+            bl.errorResponse(res, 404, "Departments not found!");
         }
-
+    
         res.json(bl.success(departments));
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
 // GET
@@ -84,11 +84,11 @@ app.post(baseURL + "/department", urlencodedParser, (req,res) => {
                 res.json(bl.success(department));  // return newly inserted department obj
             }
             else {
-                res.status(400).send(error("Inserting department failed!"));
+                bl.errorResponse(res, 400, "Inserting department failed!");
             }
         }
         else {
-            res.status(400).send(error(" Invalid field input(s)!"));
+            bl.errorResponse(res, 400, "Invalid field input(s)!");
         }
 
     }
@@ -143,15 +143,15 @@ app.put(baseURL + "/department", incomingJsonParser, (req,res,next) => {
                     res.json(bl.success(department));             // return updated department
                 }
                 else {
-                    res.status(400).send(error("Update failed on department " + dept_id + "!"));
+                    bl.errorResponse(res, 400, "Update failed on department " + dept_id + "!");
                 }
             }
             else{
-                res.status(400).send(error("Invalid field(s) entered on update!"));
+                bl.errorResponse(res, 400, "Invalid field(s) entered on update!");
             }
         }
         else {
-            res.status(404).send(error("Department " + dept_id + " not found to update!"));
+            bl.errorResponse(res, 404, "Department " + dept_id + " not found to update!");
         }
     }
     else{
@@ -170,7 +170,7 @@ app.delete(baseURL + "/department", (req,res,next) => {
              * Delete Employees
              * Delete department
              */
-            var employees = dl.getAllEmployee(company); // get ALL employees 
+            var employees = dl.getAllEmployee(company); // GET ALL employees 
             if(employees.length > 0){
                 for(var i = 0; i < employees.length; i++){
                     if(employees[i].getDeptId() == department.getId()){
@@ -181,7 +181,7 @@ app.delete(baseURL + "/department", (req,res,next) => {
                             }
                         }
 
-                        dl.deleteEmployee(employees[i].getId()); // delete employee
+                        dl.deleteEmployee(employees[i].getId()); // DELETE each employee
                     }
                 }
             }
@@ -192,11 +192,11 @@ app.delete(baseURL + "/department", (req,res,next) => {
                 res.json(bl.success("Department " + dept_id + " from " + company + " deleted!")); 
             }
             else {
-                res.status(404).send(error(rows + " rows affected! Delete failed!"));
+                bl.errorResponse(res, 404, "Deleting department failed!");
             }
         }
         else {
-            res.status(404).send(error("Department " + dept_id + " trying to delete doesn't exist!"));
+            bl.errorResponse(res, 404, "Department " + dept_id + " trying to delete doesn't exist!");
         }
     }
     else{
@@ -215,7 +215,7 @@ app.get(baseURL + "/employees", (req,res,next) => {
     if(bl.myCompany(company)){
         response = dl.getAllEmployee(company);
         if(response == null){ 
-            res.status(404).send(error("No employees found!")); 
+            bl.errorResponse(res, 404, "No employees found!");
         }
     
         res.json(bl.success(response));
@@ -233,7 +233,7 @@ app.get(baseURL + "/employee", (req,res,next) => {
 
         var employee = dl.getEmployee(emp_id);
         if(employee == null){ 
-            res.status(404).send(error("Employee "+ emp_id +" not found!")); 
+            bl.errorResponse(res, 404, "Employee "+ emp_id +" not found!");
         }
     
         res.json(bl.success(employee));
@@ -267,11 +267,11 @@ app.post(baseURL + "/employee", urlencodedParser, (req,res) => {
                 res.json(bl.success(validEmp));     // return newly inserted employee obj
             }
             else {
-                res.status(400).send(error("Inserting employee failed!"));
+                bl.errorResponse(res, 400, "Inserting employee failed!");
             }
         }
         else {
-            res.status(400).send(error("Invalid field input(s)!"));
+            bl.errorResponse(res, 400, "Invalid field input(s)!");
         }
     }
     else{
@@ -346,15 +346,15 @@ app.put(baseURL + "/employee", incomingJsonParser, (req,res,next) => {
                     res.json(bl.success(employee));
                 }
                 else {
-                    res.status(400).send(error("Update failed on employee"));
+                    bl.errorResponse(res, 400, "Update failed on employee");
                 }
             }
             else {
-                res.status(400).send(error("Invalid input field(s)!"));
+                bl.errorResponse(res, 400, "Invalid input field(s)!");
             }
         }
         else {
-            res.status(404).send(error("Employee " + emp_id + " not found to update!"));
+            bl.errorResponse(res, 404, "Employee " + emp_id + " not found to update!");
         }
     }
     else{
@@ -382,11 +382,11 @@ app.delete(baseURL + "/employee", (req,res,next) => {
                 res.json(bl.success("Deleted employee " + emp_id + " successfully!"));
             }
             else {
-                res.status(500).send(error("Deleting employee " + emp_id + " failed to delete!"));
+                bl.errorResponse(res, 400, "Deleting employee " + emp_id + " failed!");
             }
         }
         else {
-            res.status(404).send(error("Employee " + emp_id + " does not exist!"));
+            bl.errorResponse(res, 404, "Employee " + emp_id + " does not exist!");
         }
     }
     else{
@@ -422,12 +422,12 @@ app.get(baseURL + "/timecard", (req,res,next) => {
         var timecard_id = req.query.timecard_id;        // store timecard_id
         var timecard = dl.getTimecard(timecard_id);     // GET the timecard
         if(timecard == null){
-            res.status(404).send(error("Timecard "+ timecard_id +" not found!"));
+            bl.errorResponse(res, 404, "Timecard "+ timecard_id +" not found!");
         }
         res.json(bl.success(timecard));
     }
     else{
-        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
     }
 });
 // POST
@@ -450,11 +450,11 @@ app.post(baseURL + "/timecard", urlencodedParser, (req,res,next) => {
                 res.json(bl.success(validTC));
             }
             else {
-                res.status(400).send(error("Inserting timecard failed!"));
+                bl.errorResponse(res, 400, "Inserting timecard failed!");
             }
         }
         else {
-            res.status(400).send(error("Invalid input(s)!"));
+            bl.errorResponse(res, 400,"Invalid input(s)!");
         }
     }
     else{
@@ -477,11 +477,11 @@ app.delete(baseURL + "/timecard", (req,res,next) => {
                 res.json(bl.success("Deleted timecard " + timecard_id + " successfully!"));
             }
             else {
-                res.status(500).send(error("Deleting timecard " + timecard_id + " failed!"));
+                bl.errorResponse(res, 400, "Deleting timecard " + timecard_id + " failed!");
             }
         }  
         else {
-            res.status(404).send(error("Timecard " + timecard_id + " trying to delete doesn't exist!"));
+            bl.errorResponse(res, 404, "Timecard " + timecard_id + " trying to delete doesn't exist!");
         }
     }
     else{
