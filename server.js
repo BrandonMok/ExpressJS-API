@@ -73,10 +73,15 @@ app.post(baseURL + "/department", urlencodedParser, (req,res) => {
         department = bl.validateDepartment(department, response.company, "POST");
         if(department != null){
             department = dl.insertDepartment(department);
-            return res.json(bl.success(department));
+            if(bl.notNull(department)){
+                res.json(bl.success(department));  // return newly inserted department obj
+            }
+            else {
+                res.status(400).send(error("Inserting department failed!"));
+            }
         }
         else {
-            return res.status(400).send(error(" Invalid field input(s)!"));
+            res.status(400).send(error(" Invalid field input(s)!"));
         }
 
     }
@@ -232,7 +237,38 @@ app.get(baseURL + "/employee", (req,res,next) => {
 });
 // POST
 app.post(baseURL + "/employee", urlencodedParser, (req,res,next) => {
+    var response = {company: req.body.company,
+                    emp_name: req.body.emp_name,
+                    emp_no: req.body.emp_no,
+                    hire_date: req.body.hire_date,
+                    job: req.body.job,
+                    salary: req.body.salary,
+                    dept_id: req.body.dept_id,
+                    mng_id: req.body.mng_id
+                };
 
+    if(bl.myCompany(response.company)){
+        var employee = new dl.Employee(response.emp_name, response.emp_no, 
+                                    response.hire_date, response.job, 
+                                    response.salary, response.dept_id, response.mng_id
+                                );
+        employee = bl.validateEmployee(employee, response.company, "POST");
+        if(bl.notNull(employee)){
+            employee = dl.insertEmployee(employee); // INSERT
+            if(bl.notNull(employee)){
+                res.json(bl.success(employee));     // return newly inserted employee obj
+            }
+            else {
+                res.status(400).send(error("Inserting employee failed!"));
+            }
+        }
+        else {
+            res.status(400).send(error("Invalid field input(s)!"));
+        }
+    }
+    else{
+        res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
+    }
 });
 // PUT
 app.put(baseURL + "/employee", incomingJsonParser, (req,res,next) => {

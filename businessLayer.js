@@ -1,5 +1,6 @@
 // Data Layer
 var DataLayer = require("./companydata/index.js");
+var dl = new DataLayer("bxm5989");
 
 // Combination of middleware and validation methods.
 var methods = {};
@@ -93,7 +94,7 @@ methods.validateTimestamp = function(timestamp){
 /**  OBJECT VALIDATION  */
 // Department validation
 methods.validateDepartment = function(dep, company, action){
-    var dl = new DataLayer("bxm5989");
+    // var dl = new DataLayer("bxm5989");
 
     var department = dl.getDepartment(company, dep.getId());    // get specific department wanting to modify
     var allDepartments = dl.getAllDepartment(company);          // get ALL departments
@@ -140,8 +141,103 @@ methods.validateDepartment = function(dep, company, action){
     return dep;
 }
 // Employee validation
-methods.validateEmployee = function(employee, company, action){
+methods.validateEmployee = function(emp, company, action){
+    var employee = dl.getEmployee(emp.getId());
 
+    if(action == "PUT"){
+        if(!methods.notNull(employee)){
+            // on PUT, don't want employee obj to not exist
+            return null;
+        }
+    }
+    else if (action == "POST"){
+        if(methods.notNull(employee)){
+            // on POST, don't want employee obj to exist
+            return null;
+        }
+    }
+
+    // Dept_ID check - must be an existing department
+    var department = dl.getDepartment(company, emp.getDeptId());
+    if(!methods.notNull(department)){
+        return null;
+    }
+
+    /**
+     * mng_id CHECK
+     * mng_id must be an existing employee's emp_id
+     * Set to 0 if it's the first employee or to another employee that doesn't have a manager yet
+     */
+    var allEmployees = dl.getAllEmployee(company);
+    if(allEmployees.length > 0){
+        emp.setMngId(0);
+    }
+    else {
+        var empExists = false;
+        var tempEmployee = null;
+
+        for(var i = 0; i < allEmployees.length; i++){
+            // Check to see if there's an employee with the entered mng_id
+            if(allEmployees[i].getId() == emp.getMngId()){
+                empExists = true;
+                break;
+            }
+            // Look for an employee who doesn't have a manager
+            if(allEmployees[i].getMngId() == 0){
+                tempEmployee = allEmployees[i];
+            }
+        }
+
+        // CHECK: if employee who's mng_id isn't an existing employee
+        if(!empExists){
+            if(action == "PUT"){
+                if(emp.getMngId() == 0){
+                    // Set the emp's mng_id to an existing employee 
+                    emp.setMngId(tempEmployee.getId());
+                }
+                else {
+                    return null;
+                }
+            }
+        }
+
+        // CHECK: emp_no
+        // emp_no must be unique per company - use uniquePerCompany()
+        var emp_no = methods.uniquePerCompany(emp.getEmpNo(), company);
+        for(var j = 0; j < allEmployees; j++){
+            if(allEmployees[j].getEmpNo() == emp_no){
+                /**
+                 * POST: returns null if there's an existing employee already w/the emp_no
+                 * PUT: returns null if this employee obj isn't the same as the one passed into function
+                 */
+                if(action == "POST"){
+                    return null;
+                }
+                else if(action == "PUT"){
+                    if(emp.getId() != allEmployees[j].getId()){
+                        return null;
+                    }
+                }
+            }
+        }
+
+        // if no employee found w/unique emp_no
+        if(emp_no != emp.getEmpNo()){
+            emp.setEmpNo(emp_no);
+        }
+
+        // if emp_name & job aren't valid strings w/o numbers
+        if(!methods.validString(emp.getEmpName()) || !methods.validString(emp.getJob())){
+            return null;
+        }
+
+        // if hire_date isn't valid
+        if(!methods.validateDate(emp.getHireDate())){
+            return null;
+        }
+
+        return emp;
+    }
 }
 // Timecard Validation
 methods.validateTimecard = function(timecard, company, action){
