@@ -26,6 +26,7 @@ app.get("/", (req,res,next) => {
 /**
  * Departments
  */
+// GET
 // localhost:8080/CompanyServices/departments?company={company}
 app.get(baseURL + "/departments", (req,res,next) => {
     var company = bl.retrieveCompany(req);
@@ -41,6 +42,7 @@ app.get(baseURL + "/departments", (req,res,next) => {
         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
     }
 });
+// GET
 // localhost:8080/CompanyServices/department?company={company}&dept_id={dept_id}
 app.get(baseURL + "/department", (req,res,next) => {
     var company = bl.retrieveCompany(req);
@@ -194,6 +196,7 @@ app.delete(baseURL + "/department", (req,res,next) => {
 /**
  * Employees
  */
+// GET
 // localhost:8080/CompanyServices/employees?company={company}
 app.get(baseURL + "/employees", (req,res,next) => {
     var company = bl.retrieveCompany(req);
@@ -209,6 +212,7 @@ app.get(baseURL + "/employees", (req,res,next) => {
         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
     }
 });
+// GET
 // localhost:8080/CompanyServices/employee?company={company}&emp_id={emp_id}
 app.get(baseURL + "/employee", (req,res,next) => {
     var company = bl.retrieveCompany(req);
@@ -226,6 +230,15 @@ app.get(baseURL + "/employee", (req,res,next) => {
         res.status(400).send(error("Bad Request - Entered company invalid!")); // bad request - not my company
     }
 });
+// POST
+app.post(baseURL + "/employee", urlencodedParser, (req,res,next) => {
+
+});
+// PUT
+app.put(baseURL + "/employee", incomingJsonParser, (req,res,next) => {
+
+});
+// DELETE
 app.delete(baseURL + "/employee", (req,res,next) => {
     var company = bl.retrieveCompany(req);
     if(bl.myCompany(company)){
