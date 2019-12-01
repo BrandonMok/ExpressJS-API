@@ -409,9 +409,9 @@ app.get(baseURL + "/timecards", (req,res,next) => {
 // localhost:8080/CompanyServices/timecard?company={company}&timecard_id={timecard_id}
 app.get(baseURL + "/timecard", (req,res,next) => {
     var company = bl.retrieveCompany(req);
-    if(bl.company(company)){
-        var timecard_id = req.query.timecard_id;
-        var timecard = getTimecard(timecard_id);
+    if(bl.myCompany(company)){
+        var timecard_id = req.query.timecard_id;        // store timecard_id
+        var timecard = dl.getTimecard(timecard_id);     // GET the timecard
         if(timecard == null){
             res.status(404).send(error("Timecard "+ timecard_id +" not found!"));
         }
@@ -423,11 +423,11 @@ app.get(baseURL + "/timecard", (req,res,next) => {
 });
 app.delete(baseURL + "/timecard", (req,res,next) => {
     var company = bl.retrieveCompany(req);
-    if(bl.company(company)){
-        var timecard_id = req.query.timecard_id
-        var timecard = dl.getTimecard(timecard_id);
-        if(timecard != null){
-            var rows = dl.deleteTimecard(timecard_id);
+    if(bl.myCompany(company)){
+        var timecard_id = req.query.timecard_id         // store timecard_id
+        var timecard = dl.getTimecard(timecard_id);     // get timecard
+        if(timecard != null){   
+            var rows = dl.deleteTimecard(timecard_id);  // DELETE
             if(rows > 0){
                 res.json(bl.success("Deleted timecard " + timecard_id + " successfully!"));
             }
