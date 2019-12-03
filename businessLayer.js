@@ -119,22 +119,12 @@ methods.validateTimestamp = function(emp_id, start_time, end_time){
     var startTime = moment(start_time);
     var endTime = moment(end_time);
 
-    var weekAgo = today.subtract(7,'days').calendar();
+    var weekAgo = moment().subtract(7, 'days');
 
-    //console.log(startTime.format().split("T")[0].toString());
-    //console.log(startTime.format("YYYY-MM-DD"));
-    // var testing = startTime.format("YYYY-MM-DD");
-    // console.log(testing);
-    // console.log(testing.day());
-
-
-    // console.log(startTime.format("YYYY-MM-DD"));
-    // console.log(endTime.format("YYYY-MM-DD"));
-
-    // VALIDATE date portion of timestamp
-    if(!methods.validateDate(startTime.format().split("T")[0].toString()) || !methods.validateDate(endTime.format().split("T")[0].toString())){
+    // VALIDATE date portion of timestamp   
+    if(!methods.validateDate(startTime.format("YYYY-MM-DD")) || !methods.validateDate(endTime.format("YYYY-MM-DD"))){
         return false;
-    }    
+    }  
 
     // starting time cannot be after today and not before a week ago
     if(startTime.isAfter(today) || startTime.isBefore(weekAgo)){
@@ -149,7 +139,7 @@ methods.validateTimestamp = function(emp_id, start_time, end_time){
         (startTime.date() != endTime.date()) ||
         (startTime.year() != endTime.year()) ||
         (startTime.day() != endTime.day()) ||
-        (endTime.isBefore(startTime) || (startTime.hour() >= endDate.hour() + 1))
+        (endTime.isBefore(startTime) || (startTime.hour() > endTime.hour() + 1))
     ){
         return false;
     }
@@ -164,10 +154,15 @@ methods.validateTimestamp = function(emp_id, start_time, end_time){
     }
 
     // startTime can't be on the same day as any other startTimes for that employee
-    var allTimecards = dl.getAllTimecard(emp_id);
-    for(var tc in allTimecards){
-        if(tc.getStartTime().isSame(startTime)){
-            return false;
+    var allTimecards = dl.getAllTimecard(emp_id);   // get employee timecards
+    if(allTimecards.length > 0){
+        for(var i = 0; i < allTimecards.length; i++){
+            var startingTimes = allTimecards[i].getStartTime(); // store start_times of each timecard for the employee
+    
+            // startTimes can't be on same day as another startTime 
+            if(moment(startingTimes).isSame(startTime)){
+                return false;
+            }
         }
     }
 
