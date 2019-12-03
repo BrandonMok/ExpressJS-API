@@ -463,7 +463,57 @@ app.post(baseURL + "/timecard", urlencodedParser, (req,res,next) => {
 });
 //PUT
 app.put(baseURL + "/timecard", incomingJsonParser, (req,res) => {
+    var response = {
+        company: req.body.company,
+        emp_id: req.body.emp_id,
+        timecard_id: req.body.timecard_id,
+        start_time: req.body.start_time,
+        end_time: req.body.end_time
+    };
+    var keys = Object.keys(response);
+    var company = response.company;
+    if(bl.myCompany(company)){
+        var timecard_id = response.timecard_id; // store timecard_id
+        var timecard = dl.getTimecard(timecard_id);
+        if(bl.notNull(timecard)){
+            for(var i = 0; i < keys.length; i++){
+                if(keys[i] != 0 && bl.notNull(keys[i])){
+                    switch(keys[i].toLowerCase()){
+                        case "start_time":
+                            if(bl.notNull(response.start_time)){
+                                timecard.setStartTime(response.start_time);
+                            }
+                            break;
+                        case "end_time":
+                            if(bl.notNull(response.end_time)){
+                                timecard.setEndTime(response.end_time);
+                            }
+                            break;
+                    }
+                }
+            }
 
+            var validTimecard = bl.validateTimecard(timecard, company, "PUT"); // VALIDATE
+            if(bl.notNull(validTimecard)){
+                validTimecard = dl.updateTimecard(validTimecard);
+                if(bl.notNull(validTimecard)){
+                    res.json(bl.success(validTimecard));    // send updated timecard
+                }
+                else {
+                    bl.errorResponse(res, 400, "Update failed on timecard " + timecard_id);
+                }
+            }
+            else {
+                bl.errorResponse(res, 400, "Invalid field(s) entered for update!");
+            }
+        }
+        else {
+            bl.errorResponse(res, 404, "Timecard " + timecard_id + " not found!");
+        }
+    }
+    else{
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
+    }
 });
 // DELETE
 app.delete(baseURL + "/timecard", (req,res,next) => {
