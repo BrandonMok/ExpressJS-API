@@ -98,7 +98,13 @@ methods.validateDate = function(validateDate){
     //var current_date = moment().format('L');   //12/01/2019
     var current_date = moment();
 
-    if( (pDay >= 2 && pDay <= 6) &&
+
+    // console.log("In validateDate():" + validateDate);
+    // console.log(passedDate);
+
+    // M-F basis 
+    // Cannot be a day > than maximum days of that month
+    if( (pDay >= 1 && pDay <= 5) &&
         (pDayOfMonth > 0 && pDayOfMonth <= pMaxDays) &&
         passedDate.isSameOrBefore(current_date)
     ){
@@ -108,8 +114,64 @@ methods.validateDate = function(validateDate){
     return valid;
 }
 // timestamp validation
-methods.validateTimestamp = function(timestamp){
-    
+methods.validateTimestamp = function(emp_id, start_time, end_time){
+    var today = moment();
+    var startTime = moment(start_time);
+    var endTime = moment(end_time);
+
+    var weekAgo = today.subtract(7,'days').calendar();
+
+    //console.log(startTime.format().split("T")[0].toString());
+    //console.log(startTime.format("YYYY-MM-DD"));
+    // var testing = startTime.format("YYYY-MM-DD");
+    // console.log(testing);
+    // console.log(testing.day());
+
+
+    // console.log(startTime.format("YYYY-MM-DD"));
+    // console.log(endTime.format("YYYY-MM-DD"));
+
+    // VALIDATE date portion of timestamp
+    if(!methods.validateDate(startTime.format().split("T")[0].toString()) || !methods.validateDate(endTime.format().split("T")[0].toString())){
+        return false;
+    }    
+
+    // starting time cannot be after today and not before a week ago
+    if(startTime.isAfter(today) || startTime.isBefore(weekAgo)){
+        return false;
+    }
+
+    /**
+     * endTime needs to be on the same day as startTime
+     * endTime needs to be atleast 1 hour > than startTime
+     */
+    if(
+        (startTime.date() != endTime.date()) ||
+        (startTime.year() != endTime.year()) ||
+        (startTime.day() != endTime.day()) ||
+        (endTime.isBefore(startTime) || (startTime.hour() >= endDate.hour() + 1))
+    ){
+        return false;
+    }
+
+    // Time must be within 06:00:00 - 18:00:00
+    if(
+        (startTime.hour() < 6 || startTime.hour() > 18) ||
+        (endTime.hour() < 6 || endTime.hour() > 18) ||
+        (startTime.hour() == endTime.hour())
+    ){
+        return false;
+    }
+
+    // startTime can't be on the same day as any other startTimes for that employee
+    var allTimecards = dl.getAllTimecard(emp_id);
+    for(var tc in allTimecards){
+        if(tc.getStartTime().isSame(startTime)){
+            return false;
+        }
+    }
+
+    return true;
 }
 
 
@@ -248,7 +310,6 @@ methods.validateEmployee = function(emp, company, action){
             emp.setEmpNo(emp_no);
         }
 
-
         // if emp_name & job aren't valid strings w/o numbers
         if(!methods.validString(emp.getEmpName()) || !methods.validString(emp.getJob())){
             return null;
@@ -263,8 +324,31 @@ methods.validateEmployee = function(emp, company, action){
     return emp;
 }
 // Timecard Validation
-methods.validateTimecard = function(timecard, company, action){
+methods.validateTimecard = function(tc, company, action){
+    var timecard = dl.getTimecard(tc.getId());  // get Timecard
+    if(action == "PUT"){
+        if(!methods.notNull(timecard)){
+            return null;
+        }
+    }
+    else if (action == "POST"){
+        if(methods.notNull(timecard)){
+            return null;
+        }
+    }
 
+    // Emp_id on timecard must be that of an existing employee
+    var employee = dl.getEmployee(tc.getEmpId());   // GET employee
+    if(!methods.notNull(employee)){
+        return null;
+    }
+
+    // VALIDATE timestamps (start_time & end_time)
+    if(!methods.validateTimestamp(tc.getEmpId(), tc.getStartTime(), tc.getEndTime())){
+        return null;
+    }
+
+    return tc;
 }
 
 exports.data = methods;
