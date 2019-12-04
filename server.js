@@ -25,9 +25,50 @@ app.get("/", (req,res,next) => {
 /**
  * Company
  */
-// app.delete(baseURL + "/company", (req,res,next) => {
+app.delete(baseURL + "/company", (req,res,next) => {
+    var company = bl.retrieveCompany(req);
+    if(bl.myCompany(company)){
+        /**
+         * 1) Delete all timecards
+         * 2) Delete all employees
+         * 3) Delete all departments
+         * 4) Delete company
+         */
+        var allEmployees = dl.getAllEmployee(company);
+        if(allEmployees.length > 0){
+            for(var i = 0; i < allEmployees.length; i++){
+                // Timecards for each employee
+                var allTimecards = dl.getAllTimecard(allEmployees[i].getId());
+                if(allTimecards.length > 0){
+                    for(var j = 0; j < allTimecards.length; j++){
+                        dl.deleteTimecard(allTimecards[j].getId()); // DELETE timecard(s)
+                    }
+                }
+                dl.deleteEmployee(allEmployees[i].getId()); // DELETE employee(s)
+            }
+        }
 
-// });
+        // Departments
+        var allDepartments = dl.getAllDepartment(company);
+        if(allDepartments.length > 0){
+            for(var i = 0; i < allDepartments.length; i++){
+                dl.deleteDepartment(company, allDepartments[i].getId());    // DELETE department(s)
+            }
+        }
+
+        // Company
+        var rows = dl.deleteCompany(company);
+        if(rows > 0){
+            res.json(bl.success("Company " + company + "'s information deleted succesfully!"))
+        }
+        else {
+            bl.errorResponse(res, 400, "Deleting company failed!");
+        }
+    }
+    else{
+        bl.errorResponse(res, 400, "Bad Request - Entered company is invalid!");    // reusable function to return error
+    }
+});
 
 
 /**
