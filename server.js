@@ -57,7 +57,7 @@ app.delete(baseURL + "/company", (req,res,next) => {
         }
 
         // Company
-        var rows = dl.deleteCompany(company);
+        var rows = dl.deleteCompany(company); // One issue: 0 rows affected BUT from testing, have no timecards, no employees, no departments
         if(rows > 0){
             res.json(bl.success("Company " + company + "'s information deleted succesfully!"))
         }
@@ -83,7 +83,7 @@ app.get(baseURL + "/departments", (req,res,next) => {
         if(departments == null){ 
             bl.errorResponse(res, 404, "Departments not found!");
         }
-    
+
         res.json(bl.success(departments));
     }
     else{

@@ -94,13 +94,7 @@ methods.validateDate = function(validateDate){
     var pMaxDays = passedDate.daysInMonth();    // max # of days in month
 
     // current date
-    //var current_date = moment().toDate().getTime();
-    //var current_date = moment().format('L');   //12/01/2019
     var current_date = moment();
-
-
-    // console.log("In validateDate():" + validateDate);
-    // console.log(passedDate);
 
     // M-F basis 
     // Cannot be a day > than maximum days of that month
@@ -173,8 +167,6 @@ methods.validateTimestamp = function(emp_id, start_time, end_time){
 /**  OBJECT VALIDATION  */
 // Department validation
 methods.validateDepartment = function(dep, company, action){
-    // var dl = new DataLayer("bxm5989");
-
     var department = dl.getDepartment(company, dep.getId());    // get specific department wanting to modify
     var allDepartments = dl.getAllDepartment(company);          // get ALL departments
 
